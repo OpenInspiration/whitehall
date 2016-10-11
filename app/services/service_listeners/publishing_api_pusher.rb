@@ -31,12 +31,28 @@ module ServiceListeners
       end
 
       handle_html_attachments(event)
+      if edition.try(:document).try(:content_id) &&
+          edition.try(:previous_edition) &&
+          edition.try(:translations)
+        handle_translations
+      end
     end
 
   private
 
     def handle_html_attachments(event)
       PublishingApiHtmlAttachmentsWorker.perform_async(edition.id, event)
+    end
+
+    def handle_translations
+      removed_translations = edition.previous_edition.translations - edition.translations
+      removed_translations.each do |tr|
+        PublishingApiRedirectWorker.new.perform(
+          edition.document.content_id,
+          edition.search_link,
+          tr.locale
+        )
+      end
     end
 
     def api
