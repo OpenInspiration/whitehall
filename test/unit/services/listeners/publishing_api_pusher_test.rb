@@ -119,7 +119,7 @@ module ServiceListeners
       pusher.expects(:perform).with(
         new_edition.document.content_id,
         new_edition.search_link,
-        fr.locale
+        fr.locale.to_s
       )
 
       PublishingApiPusher.new(new_edition).push(event: "publish")

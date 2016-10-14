@@ -45,12 +45,13 @@ module ServiceListeners
     end
 
     def handle_translations
-      removed_translations = edition.previous_edition.translations - edition.translations
-      removed_translations.each do |tr|
+      removed_locales = edition.previous_edition.translations.map(&:locale).map(&:to_s) - edition.translations.map(&:locale).map(&:to_s)
+      removed_locales.each do |locale|
+        File.open("./tmp/redirect-test.txt", "a") { |file| file.write(locale) }
         PublishingApiRedirectWorker.new.perform(
           edition.document.content_id,
           edition.search_link,
-          tr.locale
+          locale
         )
       end
     end
